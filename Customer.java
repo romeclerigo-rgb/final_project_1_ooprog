@@ -76,7 +76,10 @@ public class Customer extends User {
 
     /** Rebuilds a customer from one line of CUSTOMER.txt. */
     public static Customer fromFileLine(String line) {
-        String[] parts = line.split("\\|");
+        String[] parts = line.split("\\|", -1);
+        if (parts.length != 6) {
+            throw new IllegalArgumentException("expected 6 values but found " + parts.length);
+        }
         return new Customer(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]), parts[4], parts[5]);
     }
 }

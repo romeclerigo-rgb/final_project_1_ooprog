@@ -133,6 +133,7 @@ public class CustomerMenu {
             if (type.tablesNeeded(guests) > Reservation.MAX_TABLES) {
                 System.out.println("  [Invalid] " + type.getLabel() + " tables can fit at most "
                         + (type.getSeats() * Reservation.MAX_TABLES) + " guests. Pick a bigger table type.");
+                currentValue = null;   // Enter can't keep a value that no longer fits
                 continue;
             }
             return type;
@@ -147,6 +148,7 @@ public class CustomerMenu {
             if (count < needed) {
                 System.out.println("  [Invalid] " + guests + " guests need at least " + needed + " "
                         + tableType.getLabel() + " table(s) (" + tableType.getSeats() + " seats each).");
+                currentValue = null;   // Enter can't keep a value that no longer fits
                 continue;
             }
             return count;
@@ -163,11 +165,12 @@ public class CustomerMenu {
     private void viewMyReservations() {
         System.out.println("--- My Reservations ---");
         List<Reservation> mine = store.getReservationsOf(customer.getCustomerId());
-        new SortByDate().sort(mine);
-        Display.printReservations(mine);
         if (mine.isEmpty()) {
+            System.out.println("  You have no reservations yet.");
             return;
         }
+        new SortByDate().sort(mine);
+        Display.printReservations(mine);
         System.out.println("\n  For full details type the 6 digits of a reservation ID, or press Enter to finish.");
         while (true) {
             String id = Input.readReservationIdOrSkip("Reservation ID (6 digits, without RN-)");
@@ -189,6 +192,10 @@ public class CustomerMenu {
 
     private void updateReservation() throws ReservationException {
         System.out.println("--- Update a Reservation ---");
+        if (!hasReservationWithStatus(ReservationStatus.CONFIRMED)) {
+            System.out.println("  You have no Confirmed reservations to update yet.");
+            return;
+        }
         Reservation r = null;
         boolean submit = false;
 
@@ -244,6 +251,11 @@ public class CustomerMenu {
 
     private void cancelReservation() throws ReservationException {
         System.out.println("--- Cancel a Reservation ---");
+        if (!hasReservationWithStatus(ReservationStatus.CONFIRMED)
+                && !hasReservationWithStatus(ReservationStatus.PENDING_UPDATE)) {
+            System.out.println("  You have no reservations that can be cancelled yet.");
+            return;
+        }
         Reservation r = null;
         boolean confirmed = false;
 
@@ -274,6 +286,16 @@ public class CustomerMenu {
         r.requestCancel();
         store.save();
         System.out.println("\n  Cancellation request sent to the manager for approval.");
+    }
+
+    /** True if this customer has at least one reservation with the given status. */
+    private boolean hasReservationWithStatus(ReservationStatus status) {
+        for (Reservation r : store.getReservationsOf(customer.getCustomerId())) {
+            if (r.getStatus() == status) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

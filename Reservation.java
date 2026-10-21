@@ -72,7 +72,7 @@ public class Reservation {
 
     /** True if the requested change moves the date or time (this has a fee). */
     public boolean requestChangesSchedule() {
-        return !newDate.equals(date) || !newTime.equals(time);
+        return hasRequestedUpdate() && (!newDate.equals(date) || !newTime.equals(time));
     }
 
     // -------------------------------------------------------------- money
@@ -130,6 +130,7 @@ public class Reservation {
         if (status != ReservationStatus.CONFIRMED) {
             throw new ReservationException("Only Confirmed reservations can be updated. This one is " + status.getLabel() + ".");
         }
+        validateBookingDetails(date, time, guests, tableType, tables);
         this.newDate = date;
         this.newTime = time;
         this.newGuests = guests;
@@ -139,7 +140,7 @@ public class Reservation {
     }
 
     public void approveUpdate(double fee) throws ReservationException {
-        if (status != ReservationStatus.PENDING_UPDATE) {
+        if (status != ReservationStatus.PENDING_UPDATE || !hasRequestedUpdate()) {
             throw new ReservationException("This reservation has no update waiting for approval.");
         }
         date = newDate;
@@ -194,7 +195,7 @@ public class Reservation {
         if (status != ReservationStatus.CHECKED_IN) {
             throw new ReservationException("Only Checked-In guests can be checked out.");
         }
-        if (getBalance() > 0) {
+        if (getBalance() > 0.005) {
             throw new ReservationException(String.format(
                     "The customer still owes PHP %,.2f. Record the payment first.", getBalance()));
         }
@@ -205,11 +206,25 @@ public class Reservation {
         if (status == ReservationStatus.CANCELLED) {
             throw new ReservationException("A cancelled reservation can't receive payments.");
         }
-        if (amount <= 0 || amount > getBalance() + 0.005) {
+        if (Double.isNaN(amount) || Double.isInfinite(amount) || amount <= 0 || amount > getBalance() + 0.005) {
             throw new ReservationException(String.format(
                     "The amount must be more than 0 and not more than the balance of PHP %,.2f.", getBalance()));
         }
         amountPaid = amountPaid + amount;
+    }
+
+    /** Double-checks the booking details before they are saved (date, time, guests, tables). */
+    private void validateBookingDetails(LocalDate date, LocalTime time, int guests,
+                                        TableType tableType, int tables) throws ReservationException {
+        if (date == null || time == null || tableType == null) {
+            throw new ReservationException("Date, time and table type are required.");
+        }
+        if (guests < 1 || guests > MAX_GUESTS || tables < 1 || tables > MAX_TABLES) {
+            throw new ReservationException("The number of guests or tables is outside the allowed range.");
+        }
+        if (tables < tableType.tablesNeeded(guests)) {
+            throw new ReservationException("The selected number of tables can't seat all the guests.");
+        }
     }
 
     private void clearRequestedUpdate() {
@@ -240,7 +255,10 @@ public class Reservation {
 
     /** Rebuilds a reservation from one line of RESERVE.txt / CANCELLED.txt. */
     public static Reservation fromFileLine(String line) {
-        String[] p = line.split("\\|");
+        String[] p = line.split("\\|", -1);
+        if (p.length != 15) {
+            throw new IllegalArgumentException("expected 15 values but found " + p.length);
+        }
         Reservation r = new Reservation(p[0], p[1], LocalDate.parse(p[2]), LocalTime.parse(p[3]),
                 Integer.parseInt(p[4]), TableType.valueOf(p[5]), Integer.parseInt(p[6]));
         r.status = ReservationStatus.valueOf(p[7]);
