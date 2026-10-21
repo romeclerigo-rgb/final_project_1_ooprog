@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /**
  * Abstract parent for every person who can use the system.
  *
@@ -20,10 +19,4 @@ public abstract class User {
     public abstract String getRole();
 
     public abstract void showMenu();
-=======
-public class App {
-    public static void main(String[] args) throws Exception {
-        System.out.println("Hello, World!");
-    }
->>>>>>> 974082ec24bb78705a0d9bc166ae84d18ade79a8
 }
