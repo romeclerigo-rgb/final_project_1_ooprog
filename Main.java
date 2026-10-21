@@ -8,7 +8,7 @@ public class Main {
         boolean running = true;
         while (running) {
             printTitle("RESTAURANT RESERVATION SYSTEM");
-            System.out.println("  [1] Sign In (Create Customer Account)");
+            System.out.println("  [1] Sign In");
             System.out.println("  [2] Log In");
             System.out.println("  [0] Exit");
             System.out.println(BORDER);

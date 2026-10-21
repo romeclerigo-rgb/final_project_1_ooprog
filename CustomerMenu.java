@@ -32,6 +32,7 @@ public class CustomerMenu {
             System.out.println("  [5] View payment status");
             System.out.println("  [6] View my profile");
             System.out.println("  [0] Logout");
+            System.out.println("==================================================");
             System.out.println("  (Type \\ at a question to go back)");
 
             int choice;
@@ -176,13 +177,14 @@ public class CustomerMenu {
     }
 
     private void viewMyReservations() {
-        System.out.println("--- My Reservations ---");
+        printTitle("My Reservations");
         List<Reservation> mine = store.getReservationsOf(customer.getCustomerId());
         new SortByDate().sort(mine);
         Display.printReservations(mine);
         if (mine.isEmpty()) return;
 
         boolean viewing = true;
+        System.out.println("==================================================");
         while (viewing) {
             System.out.println("\nType the six ID digits for details, or press Enter to finish.");
             String id = Input.readReservationIdOrSkip("Reservation ID (without RN-)");
@@ -209,7 +211,7 @@ public class CustomerMenu {
     }
 
     private void updateReservation() throws ReservationException {
-        System.out.println("--- Update a Reservation ---");
+        printTitle("Update Reservation");
         Reservation reservation = null;
         boolean submit = false;
         int step = 1;
@@ -265,7 +267,7 @@ public class CustomerMenu {
     }
 
     private void cancelReservation() throws ReservationException {
-        System.out.println("--- Cancel a Reservation ---");
+        printTitle("Cancel Reservation");
         Reservation reservation = null;
         boolean confirmed = false;
         int step = 1;
@@ -328,7 +330,7 @@ public class CustomerMenu {
     }
 
     private void viewPaymentStatus() {
-        System.out.println("--- My Payment Status ---");
+        printTitle("View Payment Status");
         List<Reservation> mine = store.getReservationsOf(customer.getCustomerId());
         new SortByDate().sort(mine);
         Display.printPaymentSummary(mine);
@@ -336,7 +338,7 @@ public class CustomerMenu {
     }
 
     private void viewProfile() {
-        System.out.println("--- My Profile ---");
+        printTitle("My Profile");
         System.out.println("  Customer ID : " + customer.getCustomerId());
         System.out.println("  Full name   : " + customer.getName());
         System.out.println("  Address     : " + customer.getAddress());
@@ -345,7 +347,7 @@ public class CustomerMenu {
 
     private void printTitle(String title) {
         String border = "==================================================";
-        System.out.println("\\n" + border);
+        System.out.println(border);
         int padding = Math.max(0, (border.length() - title.length()) / 2);
         System.out.println(" ".repeat(padding) + title);
         System.out.println(border);
