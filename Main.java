@@ -43,17 +43,20 @@ public class Main {
         String lastName = Input.readName("Last name", "Santos or Dela Cruz");
         String address = Input.readAddress("Address");
         String email = Input.readEmail("Email address");
+        
         while (STORE.findCustomerByEmail(email) != null) {
             System.out.println("  [Invalid] That email address is already registered.");
             email = Input.readEmail("Email address");
         }
-        String password = Input.readPassword("Create password");
+
+        String password = Input.readNewPassword("Create password");
         int duplicateNumber = STORE.nextDuplicateNumber(firstName, lastName);
-        Customer customer = new Customer(STORE.newCustomerId(), firstName, lastName,
+        // Use the email as th e internal account key instead of generating a customer ID.
+        Customer customer = new Customer(email, firstName, lastName,
                 duplicateNumber, address, email, password);
         STORE.addCustomer(customer);
+        
         System.out.println("\nAccount created successfully!");
-        System.out.println("Customer ID: " + customer.getCustomerId());
         System.out.println("You can now log in using your email and password.");
         Input.pause();
     }

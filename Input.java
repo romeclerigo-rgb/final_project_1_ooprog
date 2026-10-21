@@ -43,6 +43,19 @@ public class Input {
         System.out.println("  [Invalid] " + message);
     }
 
+    public static String readTextOrSkip(String label) {
+        System.out.print(label + ": ");
+        if (!SCANNER.hasNextLine()) {
+            System.out.println("\\nInput closed. Goodbye!");
+            System.exit(0);
+        }
+        String text = SCANNER.nextLine();
+        if (text.equals("\\\\")) {
+            throw new BackException();
+        }
+        return text;
+    }
+
     public static int readMenuChoice(int min, int max) {
         return readNumber("Choose an option", min, max, null);
     }
@@ -174,20 +187,55 @@ public class Input {
         return value;
     }
 
+    
+    
+    
+
+    public static String readNewPassword(String label) {
+        boolean valid = false;
+        String value = "";
+
+        while (!valid) {
+            String text = ask(label, null);
+
+            if (text.length() < 8) {
+                invalid("Password must be at least 8 characters long.");
+            } else if (!text.matches(".*[A-Z].*")) {
+                invalid("Password must contain at least 1 uppercase letter.");
+            } else if (!text.matches(".*[0-9].*")) {
+                invalid("Password must contain at least 1 number.");
+            } else if (text.contains("|")) {
+                invalid("Password cannot contain |.");
+            } else {
+                value = text;
+                valid = true;
+            }
+        }
+
+        return value;
+    }
+    
     public static String readPassword(String label) {
         boolean valid = false;
         String value = "";
+
         while (!valid) {
             String text = ask(label, null);
-            if (!text.isEmpty() && !text.contains("|")) {
+
+            if (text.isEmpty()) {
+                invalid("Password cannot be empty.");
+            } else if (text.contains("|")) {
+                invalid("Password cannot contain |.");
+            } else {
                 value = text;
                 valid = true;
-            } else {
-                invalid("Password cannot be empty or contain |.");
             }
         }
+
         return value;
     }
+
+
 
     public static LocalDate readDate(String label, String currentValue) {
         boolean valid = false;

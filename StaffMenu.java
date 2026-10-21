@@ -78,7 +78,7 @@ public class StaffMenu extends EmployeeMenu {
         Display.printReservations(pending);
         if (pending.isEmpty()) return;
 
-        Reservation selected = selectReservation(pending, "Enter the six ID digits to review");
+        Reservation selected = selectReservation(pending, "Enter the reservation name to review");
         Display.printDetails(selected);
         if (Input.readYesNo("Approve this update request?")) {
             // Strategy Pattern: choose the charge rule based on the requested change.
@@ -99,7 +99,7 @@ public class StaffMenu extends EmployeeMenu {
         Display.printReservations(pending);
         if (pending.isEmpty()) return;
 
-        Reservation reservation = selectReservation(pending, "Reservation ID to confirm (six digits)");
+        Reservation reservation = selectReservation(pending, "Enter the reservation name");
         Display.printDetails(reservation);
         String givenName = Input.readReservationName("Ask the customer for the reservation name");
         if (!givenName.equalsIgnoreCase(reservation.getReservationName())) {
@@ -117,7 +117,7 @@ public class StaffMenu extends EmployeeMenu {
 
     private void checkInCustomer() throws ReservationException {
         System.out.println("--- Check In Customer ---");
-        Reservation reservation = findActiveReservationById();
+        Reservation reservation = findActiveReservationByName();
         Display.printDetails(reservation);
         if (Input.readYesNo("Confirm customer arrival and check-in?")) {
             reservation.checkIn();
@@ -130,7 +130,7 @@ public class StaffMenu extends EmployeeMenu {
 
     private void checkOutCustomer() throws ReservationException {
         System.out.println("--- Check Out Customer ---");
-        Reservation reservation = findActiveReservationById();
+        Reservation reservation = findActiveReservationByName();
         Display.printDetails(reservation);
         if (Input.readYesNo("Confirm check-out?")) {
             reservation.checkOut();
@@ -143,7 +143,7 @@ public class StaffMenu extends EmployeeMenu {
 
     private void recordPayment() throws ReservationException {
         System.out.println("--- Record Payment ---");
-        Reservation reservation = findActiveReservationById();
+        Reservation reservation = findActiveReservationByName();
         Display.printDetails(reservation);
         if (reservation.getBalance() <= 0.005) {
             System.out.println("This reservation is already fully paid.");

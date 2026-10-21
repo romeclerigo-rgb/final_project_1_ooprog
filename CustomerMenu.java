@@ -100,7 +100,7 @@ public class CustomerMenu {
         store.addReservation(reservation);
         System.out.println("\n  Reservation request saved. Staff must verify the reservation name before confirming it.");
         Display.printDetails(reservation);
-        System.out.println("\n  Please keep your Reservation ID: " + reservation.getReservationId());
+        System.out.println("\n  Please remember your Reservation name: " + reservation.getReservationName());
     }
 
     /** Steps: date, time, guest count, table type, and number of tables. */
@@ -179,21 +179,47 @@ public class CustomerMenu {
     private void viewMyReservations() {
         printTitle("My Reservations");
         List<Reservation> mine = store.getReservationsOf(customer.getCustomerId());
-        new SortByDate().sort(mine);
-        Display.printReservations(mine);
-        if (mine.isEmpty()) return;
+
+        if (mine.isEmpty()) {
+            System.out.println("No reservations yet.");
+            return;
+        }
+            new SortByDate().sort(mine);
+            Display.printReservations(mine);
+
+            boolean viewings = true;
+            System.out.println("==================================================");
+
+            while (viewings) {
+                System.out.println("\nEnter your reservation name for details, or press Enter to finish.");
+                String name = Input.readTextOrSkip("Reservation name");
+
+                if (name.isEmpty()) {
+                    viewings = false;
+                } else {
+                    Reservation reservation = findInList(mine, name);
+
+                    if (reservation == null) {
+                        System.out.println("  [Invalid] You have no reservation named " + name + ".");
+                    } else {
+                        Display.printDetails(reservation);
+                        viewings = false;
+                    }
+                }
+            }
+        
 
         boolean viewing = true;
         System.out.println("==================================================");
         while (viewing) {
-            System.out.println("\nType the six ID digits for details, or press Enter to finish.");
-            String id = Input.readReservationIdOrSkip("Reservation ID (without RN-)");
-            if (id == null) {
+            System.out.println("\nEnter your reservation name for details, or press Enter to finish.");
+            String name = Input.readTextOrSkip("Reservation name");
+            if (name.isEmpty()) {
                 viewing = false;
             } else {
-                Reservation reservation = findInList(mine, id);
+                Reservation reservation = findInList(mine, name);
                 if (reservation == null) {
-                    System.out.println("  [Invalid] You have no reservation with ID " + id + ".");
+                    System.out.println("  [Invalid] You have no reservation named " + name + ".");
                 } else {
                     Display.printDetails(reservation);
                     viewing = false;
@@ -202,16 +228,30 @@ public class CustomerMenu {
         }
     }
 
-    /** Searches the customer's displayed list without a nested loop. */
-    private Reservation findInList(List<Reservation> list, String id) {
+    /** Searches the customer's reservations by reservation name. */
+    private Reservation findInList(List<Reservation> list, String name) {
         for (Reservation reservation : list) {
-            if (reservation.getReservationId().equals(id)) return reservation;
+            if (reservation.getReservationName().equalsIgnoreCase(name)) return reservation;
         }
         return null;
     }
 
     private void updateReservation() throws ReservationException {
         printTitle("Update Reservation");
+        List<Reservation> mine = store.getReservationsOf(customer.getCustomerId());
+            boolean hasConfirmedReservation = false;
+
+            for (Reservation reservation : mine) {
+                if (reservation.getStatus() == ReservationStatus.CONFIRMED) {
+                    hasConfirmedReservation = true;
+                    break;
+                }
+            }
+
+            if (!hasConfirmedReservation) {
+                System.out.println("No reservations available to update yet.");
+                return;
+            }
         Reservation reservation = null;
         boolean submit = false;
         int step = 1;
@@ -268,6 +308,24 @@ public class CustomerMenu {
 
     private void cancelReservation() throws ReservationException {
         printTitle("Cancel Reservation");
+            List<Reservation> mine = store.getReservationsOf(customer.getCustomerId());
+            boolean hasCancellableReservation = false;
+
+            for (Reservation reservation : mine) {
+                ReservationStatus status = reservation.getStatus();
+
+                if (status == ReservationStatus.PENDING
+                        || status == ReservationStatus.CONFIRMED
+                        || status == ReservationStatus.PENDING_UPDATE) {
+                    hasCancellableReservation = true;
+                    break;
+                }
+            }
+
+            if (!hasCancellableReservation) {
+                System.out.println("No reservations available to cancel yet.");
+                return;
+            }
         Reservation reservation = null;
         boolean confirmed = false;
         int step = 1;
@@ -306,10 +364,16 @@ public class CustomerMenu {
         boolean foundValidReservation = false;
         Reservation selected = null;
         while (!foundValidReservation) {
-            String id = Input.readReservationId("Reservation ID (six digits, without RN-)");
-            Reservation reservation = store.findReservation(id);
-            if (reservation == null || !reservation.getCustomerId().equals(customer.getCustomerId())) {
-                System.out.println("  [Invalid] You have no active reservation with ID " + id + ".");
+            String name = Input.readReservationName("Reservation name");
+            Reservation reservation = null;
+            for (Reservation item : store.getReservationsOf(customer.getCustomerId())) {
+                if (item.getReservationName().equalsIgnoreCase(name)) {
+                    reservation = item;
+                    break;
+                }
+            }
+            if (reservation == null) {
+                System.out.println("  [Invalid] You have no reservation named " + name + ".");
                 continue;
             }
             ReservationStatus status = reservation.getStatus();
@@ -332,6 +396,10 @@ public class CustomerMenu {
     private void viewPaymentStatus() {
         printTitle("View Payment Status");
         List<Reservation> mine = store.getReservationsOf(customer.getCustomerId());
+        if (mine.isEmpty()) {
+            System.out.println("No reservations yet.");
+            return;
+        }
         new SortByDate().sort(mine);
         Display.printPaymentSummary(mine);
         System.out.println("Payments are made at the counter and recorded by staff.");
@@ -339,7 +407,6 @@ public class CustomerMenu {
 
     private void viewProfile() {
         printTitle("My Profile");
-        System.out.println("  Customer ID : " + customer.getCustomerId());
         System.out.println("  Full name   : " + customer.getName());
         System.out.println("  Address     : " + customer.getAddress());
         System.out.println("  Email       : " + customer.getEmail());

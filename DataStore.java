@@ -224,15 +224,6 @@ public class DataStore {
         return nextNumber;
     }
 
-    public String newCustomerId() {
-        String id = "";
-        boolean available = false;
-        while (!available) {
-            id = LocalDateTime.now().getYear() + "-" + sixDigits();
-            available = findCustomer(id) == null;
-        }
-        return id;
-    }
 
     // ------------------------------------------------------------- reservations
 
