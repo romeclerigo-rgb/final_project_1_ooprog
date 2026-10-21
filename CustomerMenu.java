@@ -146,6 +146,7 @@ public class CustomerMenu {
             selected = types[choice - 1];
             if (selected.tablesNeeded(guests) > Reservation.MAX_TABLES) {
                 System.out.println("  [Invalid] This table type cannot seat " + guests + " guests within the table limit.");
+                currentValue = null;   // Enter can't keep a table type that no longer fits
             } else {
                 valid = true;
             }
@@ -416,7 +417,12 @@ public class CustomerMenu {
         String border = "==================================================";
         System.out.println(border);
         int padding = Math.max(0, (border.length() - title.length()) / 2);
-        System.out.println(" ".repeat(padding) + title);
+        // Java 8 has no String.repeat(), so the spaces are added with a loop.
+        StringBuilder spaces = new StringBuilder();
+        for (int i = 0; i < padding; i++) {
+            spaces.append(' ');
+        }
+        System.out.println(spaces + title);
         System.out.println(border);
     }
 
