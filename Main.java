@@ -8,7 +8,7 @@ public class Main {
         boolean running = true;
         while (running) {
             printTitle("RESTAURANT RESERVATION SYSTEM");
-            System.out.println("  [1] Sign In (Create Customer Account)");
+            System.out.println("  [1] Sign In");
             System.out.println("  [2] Log In");
             System.out.println("  [0] Exit");
             System.out.println(BORDER);
@@ -43,17 +43,20 @@ public class Main {
         String lastName = Input.readName("Last name", "Santos or Dela Cruz");
         String address = Input.readAddress("Address");
         String email = Input.readEmail("Email address");
+        
         while (STORE.findCustomerByEmail(email) != null) {
             System.out.println("  [Invalid] That email address is already registered.");
             email = Input.readEmail("Email address");
         }
-        String password = Input.readPassword("Create password");
+
+        String password = Input.readNewPassword("Create password");
         int duplicateNumber = STORE.nextDuplicateNumber(firstName, lastName);
-        Customer customer = new Customer(STORE.newCustomerId(), firstName, lastName,
+        // Use the email as th e internal account key instead of generating a customer ID.
+        Customer customer = new Customer(email, firstName, lastName,
                 duplicateNumber, address, email, password);
         STORE.addCustomer(customer);
+        
         System.out.println("\nAccount created successfully!");
-        System.out.println("Customer ID: " + customer.getCustomerId());
         System.out.println("You can now log in using your email and password.");
         Input.pause();
     }

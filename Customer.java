@@ -1,6 +1,7 @@
 /**
  * A registered customer.
- * Current format: customerId|firstName|lastName|duplicateNumber|address|email|password
+ * Current format: accountKey|firstName|lastName|duplicateNumber|address|email|password.
+ * New accounts use email as the internal key; older records with IDs remain readable.
  */
 public class Customer extends User {
     private final String customerId, firstName, lastName, address, email, password;
