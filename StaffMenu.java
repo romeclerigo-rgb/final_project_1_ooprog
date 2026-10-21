@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import java.util.List;
 
 /** Menu for day-to-day reservation operations performed by restaurant staff. */
@@ -155,4 +156,8 @@ public class StaffMenu extends EmployeeMenu {
         System.out.println("Payment recorded. Updated balance: " + Display.money(reservation.getBalance()));
         System.out.println("Payment status: " + reservation.getPaymentStatus());
     }
+=======
+public class StaffMenu {
+
+>>>>>>> 974082ec24bb78705a0d9bc166ae84d18ade79a8
 }

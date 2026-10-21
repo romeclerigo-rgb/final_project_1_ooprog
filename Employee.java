@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /** Shared account information for restaurant employees. */
 public abstract class Employee extends User {
     private final String username;
@@ -17,4 +18,8 @@ public abstract class Employee extends User {
     public boolean checkPassword(String enteredPassword) {
         return password.equals(enteredPassword);
     }
+=======
+public class Employee {
+
+>>>>>>> 974082ec24bb78705a0d9bc166ae84d18ade79a8
 }

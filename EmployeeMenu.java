@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import java.util.List;
 
 /**
@@ -118,4 +119,8 @@ public abstract class EmployeeMenu {
         }
         return selected;
     }
+=======
+public class EmployeeMenu {
+
+>>>>>>> 974082ec24bb78705a0d9bc166ae84d18ade79a8
 }

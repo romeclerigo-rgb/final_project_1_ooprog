@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import java.util.List;
 
 /** Manager menu: record oversight and approval of cancellation requests. */
@@ -89,4 +90,8 @@ public class ManagerMenu extends EmployeeMenu {
             System.out.println("Cancellation rejected. The reservation returned to its previous status.");
         }
     }
+=======
+public class ManagerMenu {
+
+>>>>>>> 974082ec24bb78705a0d9bc166ae84d18ade79a8
 }
