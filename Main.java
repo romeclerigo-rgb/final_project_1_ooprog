@@ -34,7 +34,12 @@ public class Main {
 
     private static String center(String title) {
         int padding = Math.max(0, (BORDER.length() - title.length()) / 2);
-        return " ".repeat(padding) + title;
+        // Java 8 has no String.repeat(), so the spaces are added with a loop.
+        StringBuilder spaces = new StringBuilder();
+        for (int i = 0; i < padding; i++) {
+            spaces.append(' ');
+        }
+        return spaces + title;
     }
 
     private static void register() {
