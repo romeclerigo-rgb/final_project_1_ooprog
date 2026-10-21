@@ -1,85 +1,50 @@
 /**
- * A registered customer. Saved in data/CUSTOMER.txt as:
- * customerId|firstName|lastName|duplicateNumber|contactNumber|email
- *
- * duplicateNumber is 0 normally. If someone with the same first and last name
- * already exists, it becomes 1, 2, ... and the name shows as "Juan Dela Cruz(1)".
+ * A registered customer.
+ * Current format: accountKey|firstName|lastName|duplicateNumber|address|email|password.
+ * New accounts use email as the internal key; older records with IDs remain readable.
  */
 public class Customer extends User {
-
-    private String customerId;
-    private String firstName;
-    private String lastName;
-    private int duplicateNumber;
-    private String contactNumber;
-    private String email;
+    private final String customerId, firstName, lastName, address, email, password;
+    private final int duplicateNumber;
 
     public Customer(String customerId, String firstName, String lastName, int duplicateNumber,
-                    String contactNumber, String email) {
+                    String address, String email, String password) {
         super(makeFullName(firstName, lastName, duplicateNumber));
-        this.customerId = customerId;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.duplicateNumber = duplicateNumber;
-        this.contactNumber = contactNumber;
-        this.email = email;
+        this.customerId = customerId; this.firstName = firstName; this.lastName = lastName;
+        this.duplicateNumber = duplicateNumber; this.address = address;
+        this.email = email; this.password = password;
     }
-
-    /** "Juan" + "Dela Cruz" + 1  ->  "Juan Dela Cruz(1)" */
     private static String makeFullName(String firstName, String lastName, int duplicateNumber) {
         String name = firstName + " " + lastName;
-        if (duplicateNumber > 0) {
-            name = name + "(" + duplicateNumber + ")";
-        }
-        return name;
+        return duplicateNumber > 0 ? name + " (" + duplicateNumber + ")" : name;
     }
-
-    public String getCustomerId() {
-        return customerId;
+    public String getCustomerId() { return customerId; }
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public int getDuplicateNumber() { return duplicateNumber; }
+    public String getAddress() { return address; }
+    public String getEmail() { return email; }
+    public boolean checkPassword(String enteredPassword) {
+        return password != null && !password.isEmpty() && password.equals(enteredPassword);
     }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public int getDuplicateNumber() {
-        return duplicateNumber;
-    }
-
-    public String getContactNumber() {
-        return contactNumber;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    @Override
-    public String getRole() {
-        return "Customer";
-    }
-
-    @Override
-    public void showMenu() {
-        new CustomerMenu(this).run();
-    }
-
-    /** Turns this customer into one line of text for CUSTOMER.txt. */
+    @Override public String getRole() { return "Customer"; }
+    @Override public void showMenu() { new CustomerMenu(this).run(); }
     public String toFileLine() {
-        return customerId + "|" + firstName + "|" + lastName + "|" + duplicateNumber + "|"
-                + contactNumber + "|" + email;
+        return customerId + "|" + firstName + "|" + lastName + "|" + duplicateNumber
+                + "|" + address + "|" + email + "|" + password;
     }
-
-    /** Rebuilds a customer from one line of CUSTOMER.txt. */
     public static Customer fromFileLine(String line) {
-        String[] parts = line.split("\\|", -1);
-        if (parts.length != 6) {
-            throw new IllegalArgumentException("expected 6 values but found " + parts.length);
+        String[] p = line.split("\\|", -1);
+        if (p.length == 6) {
+            return new Customer(p[0], p[1], p[2], Integer.parseInt(p[3]), "Not provided", p[5], "");
         }
-        return new Customer(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]), parts[4], parts[5]);
+        if (p.length == 7 && p[5].matches("09[0-9]{9}")) {
+            // Legacy format had contact number and email but no password.
+            return new Customer(p[0], p[1], p[2], Integer.parseInt(p[3]), p[4], p[6], "");
+        }
+        if (p.length == 7) {
+            return new Customer(p[0], p[1], p[2], Integer.parseInt(p[3]), p[4], p[5], p[6]);
+        }
+        throw new IllegalArgumentException("Invalid customer record.");
     }
 }
