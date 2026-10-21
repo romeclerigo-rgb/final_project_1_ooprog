@@ -1,3 +1,4 @@
+
 /**
  * Abstract parent for every person who can use the system.
  *
@@ -19,4 +20,5 @@ public abstract class User {
     public abstract String getRole();
 
     public abstract void showMenu();
-}
+}    
+
