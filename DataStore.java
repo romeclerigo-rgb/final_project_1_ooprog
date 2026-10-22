@@ -38,8 +38,8 @@ public class DataStore {
 
     private DataStore() {
         // Demo accounts for the school project. Change these before a real deployment.
-        employees.add(new Staff("staff", "staff123", "Restaurant Staff"));
-        employees.add(new Manager("manager", "manager123", "Restaurant Manager"));
+        employees.add(new Staff("staffUser@gmail.com", "admin123", "Restaurant Staff"));
+        employees.add(new Manager("adminUser@gmail.com", "admin123", "Restaurant Manager"));
     }
 
     public static DataStore getInstance() {
@@ -209,19 +209,6 @@ public class DataStore {
         return null;
     }
 
-    public Customer findCustomerByContact(String contact) {
-        for (Customer customer : customers) {
-            if (customer.getContactNumber().equals(contact)) {
-                return customer;
-            }
-        }
-        return null;
-    }
-
-    public boolean contactExists(String contactNumber) {
-        return findCustomerByContact(contactNumber) != null;
-    }
-
     /** Returns the next display suffix for a repeated first/last-name pair. */
     public int nextDuplicateNumber(String firstName, String lastName) {
         int nextNumber = 0;
@@ -237,15 +224,6 @@ public class DataStore {
         return nextNumber;
     }
 
-    public String newCustomerId() {
-        String id = "";
-        boolean available = false;
-        while (!available) {
-            id = LocalDateTime.now().getYear() + "-" + sixDigits();
-            available = findCustomer(id) == null;
-        }
-        return id;
-    }
 
     // ------------------------------------------------------------- reservations
 
@@ -388,9 +366,9 @@ public class DataStore {
 
     // --------------------------------------------------------------- employees
 
-    public Employee findEmployee(String username, String password) {
+    public Employee findEmployee(String email, String password) {
         for (Employee employee : employees) {
-            if (employee.getUsername().equals(username) && employee.checkPassword(password)) {
+            if (employee.getEmail().equalsIgnoreCase(email) && employee.checkPassword(password)) {
                 return employee;
             }
         }

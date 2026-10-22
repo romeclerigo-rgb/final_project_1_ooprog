@@ -75,7 +75,7 @@ public class ManagerMenu extends EmployeeMenu {
         Display.printReservations(requests);
         if (requests.isEmpty()) return;
 
-        Reservation selected = selectReservation(requests, "Reservation ID to review (six digits)");
+        Reservation selected = selectReservation(requests, "Enter the reservation name to review");
         Display.printDetails(selected);
         double fee = new CancellationCharge().computeCharge(selected);
         System.out.println("Cancellation fee if approved: " + Display.money(fee));

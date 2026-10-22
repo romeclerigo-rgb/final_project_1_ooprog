@@ -87,35 +87,62 @@ public abstract class EmployeeMenu {
         Display.printReservations(store.getReservationsByPaymentStatus(status));
     }
 
-    protected Reservation findActiveReservationById() {
-        boolean found = false;
-        Reservation selected = null;
-        while (!found) {
-            String id = Input.readReservationId("Reservation ID (six digits, without RN-)");
-            selected = store.findReservation(id);
-            if (selected == null) {
-                System.out.println("  [Invalid] No active reservation has that ID.");
-            } else {
-                found = true;
-            }
-        }
-        return selected;
+    /**
+     * Finds a reservation using the name given by the customer.
+     * If names are repeated, the user chooses the correct booking by its
+     * date and time rather than entering a generated reservation ID.
+     */
+    protected Reservation findActiveReservationByName() {
+        return selectReservationByName(store.getReservations(), "Reservation name");
     }
 
     protected Reservation selectReservation(List<Reservation> choices, String prompt) {
-        boolean found = false;
+        return selectReservationByName(choices, prompt);
+    }
+
+    private Reservation selectReservationByName(List<Reservation> choices, String prompt) {
+        if (choices.isEmpty()) {
+            System.out.println("  No reservations are available to select.");
+            return null;
+        }
+
+        boolean selectedValid = false;
         Reservation selected = null;
-        while (!found) {
-            String id = Input.readReservationId(prompt);
+
+        while (!selectedValid) {
+            String name = Input.readReservationName(prompt);
+            List<Reservation> matches = new java.util.ArrayList<Reservation>();
+
             for (Reservation reservation : choices) {
-                if (reservation.getReservationId().equals(id)) {
-                    selected = reservation;
-                    found = true;
-                    break;
+                if (reservation.getReservationName().equalsIgnoreCase(name)) {
+                    matches.add(reservation);
                 }
             }
-            if (!found) System.out.println("That ID is not in the displayed list. Please try again.");
+
+            if (matches.isEmpty()) {
+                System.out.println("  [Invalid] No reservation matches that name in the displayed list.");
+                continue;
+            }
+
+            if (matches.size() == 1) {
+                selected = matches.get(0);
+                selectedValid = true;
+            } else {
+                System.out.println("More than one reservation uses that name. Choose the correct date and time:");
+                for (int i = 0; i < matches.size(); i++) {
+                    Reservation reservation = matches.get(i);
+                    System.out.printf("  [%d] %s at %s | %d guest(s) | %s%n",
+                            i + 1, reservation.getDate(), reservation.getTime(),
+                            reservation.getGuests(), reservation.getStatus().getLabel());
+                }
+
+                int choice = Input.readMenuChoice(1, matches.size());
+                selected = matches.get(choice - 1);
+                selectedValid = true;
+            }
         }
+
         return selected;
     }
+
 }

@@ -17,13 +17,13 @@ public class Display {
             return;
         }
         DataStore store = DataStore.getInstance();
-        String format = "%-10s %-20s %-19s %-10s %-5s %6s %-14s %-16s %-14s%n";
-        System.out.printf(format, "Res. ID", "Reservation name", "Customer", "Date", "Time",
+        String format = "%-22s %-19s %-10s %-5s %6s %-14s %-16s %-14s%n";
+        System.out.printf(format, "Reservation name", "Customer", "Date", "Time",
                 "Guests", "Tables", "Status", "Payment");
         System.out.println(LINE);
         for (Reservation reservation : list) {
             String tableInfo = reservation.getTables() + " x " + reservation.getTableType().getLabel();
-            System.out.printf(format, reservation.getReservationId(), shortText(reservation.getReservationName(), 20),
+            System.out.printf(format, shortText(reservation.getReservationName(), 22),
                     shortText(store.getCustomerName(reservation.getCustomerId()), 19), reservation.getDate(),
                     reservation.getTime(), reservation.getGuests(), tableInfo,
                     reservation.getStatus().getLabel(), reservation.getPaymentStatus());
@@ -37,11 +37,11 @@ public class Display {
             return;
         }
         DataStore store = DataStore.getInstance();
-        String format = "%-10s %-22s %-24s %-19s %-10s %s%n";
-        System.out.printf(format, "Res. ID", "Customer", "Reservation name", "Email", "Date", "Status");
+        String format = "%-22s %-24s %-19s %-10s %s%n";
+        System.out.printf(format, "Customer", "Reservation name", "Email", "Date", "Status");
         System.out.println(LINE);
         for (Reservation reservation : list) {
-            System.out.printf(format, reservation.getReservationId(),
+            System.out.printf(format,
                     shortText(store.getCustomerName(reservation.getCustomerId()), 22),
                     shortText(reservation.getReservationName(), 24),
                     shortText(store.getCustomerEmail(reservation.getCustomerId()), 19),
@@ -51,10 +51,9 @@ public class Display {
 
     public static void printDetails(Reservation reservation) {
         DataStore store = DataStore.getInstance();
-        System.out.println("  Reservation ID : " + reservation.getReservationId());
         System.out.println("  Reservation name: " + reservation.getReservationName());
         System.out.println("  Customer       : " + store.getCustomerName(reservation.getCustomerId())
-                + " (" + reservation.getCustomerId() + ")");
+                + " (" + store.getCustomerEmail(reservation.getCustomerId()) + ")");
         System.out.println("  Date / Time    : " + reservation.getDate() + " at " + reservation.getTime());
         System.out.println("  Guests         : " + reservation.getGuests());
         System.out.println("  Tables         : " + reservation.getTables() + " x " + reservation.getTableType().getLabel()
@@ -88,11 +87,11 @@ public class Display {
             System.out.println("  No reservations to show.");
             return;
         }
-        String format = "%-10s %-10s %-16s %15s %15s %15s %-14s%n";
-        System.out.printf(format, "Res. ID", "Date", "Status", "Total", "Paid", "Balance", "Payment");
+        String format = "%-22s %-10s %-16s %15s %15s %15s %-14s%n";
+        System.out.printf(format, "Reservation name", "Date", "Status", "Total", "Paid", "Balance", "Payment");
         System.out.println(LINE);
         for (Reservation reservation : list) {
-            System.out.printf(format, reservation.getReservationId(), reservation.getDate(),
+            System.out.printf(format, shortText(reservation.getReservationName(), 22), reservation.getDate(),
                     reservation.getStatus().getLabel(), money(reservation.getTotal()),
                     money(reservation.getAmountPaid()), money(reservation.getBalance()), reservation.getPaymentStatus());
         }
@@ -103,12 +102,12 @@ public class Display {
             System.out.println("  No customers registered yet.");
             return;
         }
-        String format = "%-15s %-24s %-32s %-16s %s%n";
-        System.out.printf(format, "Customer ID", "Full name", "Address", "Contact", "Email");
+        String format = "%-24s %-32s %s%n";
+        System.out.printf(format, "Full name", "Address", "Email");
         System.out.println(LINE);
         for (Customer customer : list) {
-            System.out.printf(format, customer.getCustomerId(), shortText(customer.getName(), 24),
-                    shortText(customer.getAddress(), 32), customer.getContactNumber(), customer.getEmail());
+            System.out.printf(format, shortText(customer.getName(), 24),
+                    shortText(customer.getAddress(), 32), customer.getEmail());
         }
         System.out.println("  Total: " + list.size() + " customer(s)");
     }
@@ -118,13 +117,13 @@ public class Display {
             System.out.println("  No check-ins or check-outs recorded yet.");
             return;
         }
-        String format = "%-18s %-10s %-15s %-24s %s%n";
-        System.out.printf(format, "Timestamp", "Res. ID", "Customer ID", "Customer", "Status");
+        String format = "%-18s %-24s %s%n";
+        System.out.printf(format, "Timestamp", "Customer", "Status");
         System.out.println(LINE);
         for (String line : log) {
             String[] parts = line.split("\\|", -1);
             if (parts.length == 5) {
-                System.out.printf(format, parts[0], parts[1], parts[2], shortText(parts[3], 24), parts[4]);
+                System.out.printf(format, parts[0], shortText(parts[3], 24), parts[4]);
             }
         }
     }

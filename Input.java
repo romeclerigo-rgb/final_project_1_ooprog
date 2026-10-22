@@ -43,6 +43,19 @@ public class Input {
         System.out.println("  [Invalid] " + message);
     }
 
+    public static String readTextOrSkip(String label) {
+        System.out.print(label + ": ");
+        if (!SCANNER.hasNextLine()) {
+            System.out.println("\\nInput closed. Goodbye!");
+            System.exit(0);
+        }
+        String text = SCANNER.nextLine();
+        if (text.equals("\\\\")) {
+            throw new BackException();
+        }
+        return text;
+    }
+
     public static int readMenuChoice(int min, int max) {
         return readNumber("Choose an option", min, max, null);
     }
@@ -157,21 +170,6 @@ public class Input {
         return value;
     }
 
-    public static String readContactNumber(String label) {
-        boolean valid = false;
-        String value = "";
-        while (!valid) {
-            String text = ask(label, null);
-            if (text.matches("09[0-9]{9}")) {
-                value = text;
-                valid = true;
-            } else {
-                invalid("Enter 11 digits starting with 09, without spaces or dashes.");
-            }
-        }
-        return value;
-    }
-
     public static String readEmail(String label) {
         boolean valid = false;
         String value = "";
@@ -189,54 +187,55 @@ public class Input {
         return value;
     }
 
-    /** The proposal allows customer login by either their registered email or contact number. */
-    public static String readEmailOrContact(String label) {
-        boolean valid = false;
-        String value = "";
-        while (!valid) {
-            String text = ask(label, null);
-            boolean email = text.matches("[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)*\\.[A-Za-z]{2,}")
-                    && !text.startsWith(".") && !text.contains("..") && !text.contains(".@");
-            boolean phone = text.matches("09[0-9]{9}");
-            if (email || phone) {
-                value = email ? text.toLowerCase() : text;
-                valid = true;
-            } else {
-                invalid("Enter your registered email or 11-digit contact number.");
-            }
-        }
-        return value;
-    }
+    
+    
+    
 
-    public static String readUsername(String label) {
+    public static String readNewPassword(String label) {
         boolean valid = false;
         String value = "";
+
         while (!valid) {
             String text = ask(label, null);
-            if (!text.isEmpty() && text.matches("[A-Za-z0-9_.-]{1,30}")) {
+
+            if (text.length() < 8) {
+                invalid("Password must be at least 8 characters long.");
+            } else if (!text.matches(".*[A-Z].*")) {
+                invalid("Password must contain at least 1 uppercase letter.");
+            } else if (!text.matches(".*[0-9].*")) {
+                invalid("Password must contain at least 1 number.");
+            } else if (text.contains("|")) {
+                invalid("Password cannot contain |.");
+            } else {
                 value = text;
                 valid = true;
-            } else {
-                invalid("Use 1-30 letters, numbers, dots, underscores, or dashes.");
             }
         }
+
         return value;
     }
-
+    
     public static String readPassword(String label) {
         boolean valid = false;
         String value = "";
+
         while (!valid) {
             String text = ask(label, null);
-            if (!text.isEmpty() && !text.contains("|")) {
+
+            if (text.isEmpty()) {
+                invalid("Password cannot be empty.");
+            } else if (text.contains("|")) {
+                invalid("Password cannot contain |.");
+            } else {
                 value = text;
                 valid = true;
-            } else {
-                invalid("Password cannot be empty or contain |.");
             }
         }
+
         return value;
     }
+
+
 
     public static LocalDate readDate(String label, String currentValue) {
         boolean valid = false;
