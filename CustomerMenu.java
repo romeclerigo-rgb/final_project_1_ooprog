@@ -22,9 +22,7 @@ public class CustomerMenu {
     public void run() {
         boolean loggedIn = true;
         while (loggedIn) {
-            System.out.println("\n==================================================");
-            System.out.println("  CUSTOMER MENU - " + customer.getName());
-            System.out.println("==================================================");
+            Display.printHeader("CUSTOMER MENU - " + customer.getName());
             System.out.println("  [1] Make a reservation");
             System.out.println("  [2] View my reservations");
             System.out.println("  [3] Update a reservation");
@@ -32,8 +30,8 @@ public class CustomerMenu {
             System.out.println("  [5] View payment status");
             System.out.println("  [6] View my profile");
             System.out.println("  [0] Logout");
-            System.out.println("==================================================");
-            System.out.println("  (Type \\ at a question to go back)");
+            System.out.println("============================================================");
+            System.out.println("  Tip: Type \\ at a question to return to the previous step.");
 
             int choice;
             try {
@@ -71,19 +69,20 @@ public class CustomerMenu {
                 // Do not pause after logout; the next screen is the main menu.
                 if (choice != 0) Input.pause();
             } catch (BackException e) {
-                System.out.println("  Returned to the customer menu.");
+                Display.printNotice("Returned to the customer menu.");
             } catch (ReservationException e) {
-                System.out.println("\n  [Error] " + e.getMessage());
+                Display.printError(e.getMessage());
                 Input.pause();
             }
         }
-        System.out.println("You have been logged out.");
+        Display.printNotice("You have been logged out.");
     }
 
     private void makeReservation() {
         printTitle("MAKE A RESERVATION");
         printBookingRules();
-        String reservationName = Input.readReservationName("Reservation name (used by staff to find your booking)");
+        System.out.println();
+        String reservationName = Input.readReservationName("Enter Reservation Name (used by staff to find your booking)");
         int step = 1;
         while (step <= 5) {
             try {
@@ -98,9 +97,7 @@ public class CustomerMenu {
         Reservation reservation = new Reservation(store.newReservationId(), customer.getCustomerId(),
                 reservationName, date, time, guests, tableType, tables);
         store.addReservation(reservation);
-        System.out.println("\n  Reservation request saved. Staff must verify the reservation name before confirming it.");
-        Display.printDetails(reservation);
-        System.out.println("\n  Please remember your Reservation name: " + reservation.getReservationName());
+        Display.printReservationConfirmation(reservation);
     }
 
     /** Steps: date, time, guest count, table type, and number of tables. */
@@ -173,8 +170,10 @@ public class CustomerMenu {
     }
 
     private void printBookingRules() {
-        System.out.println("  Booking hours: " + Reservation.OPENING_TIME + " to " + Reservation.LAST_BOOKING_TIME);
-        System.out.println("  Latest booking date: " + LocalDate.now().plusYears(1));
+        Display.printSection("Booking Guidelines");
+        System.out.println("  Booking hours       : " + Reservation.OPENING_TIME + " to " + Reservation.LAST_BOOKING_TIME);
+        System.out.println("  Latest booking date : " + LocalDate.now().plusYears(1));
+        System.out.println("  Maximum guests      : " + Reservation.MAX_GUESTS);
     }
 
     private void viewMyReservations() {
@@ -182,45 +181,23 @@ public class CustomerMenu {
         List<Reservation> mine = store.getReservationsOf(customer.getCustomerId());
 
         if (mine.isEmpty()) {
-            System.out.println("No reservations yet.");
+            Display.printNotice("No reservations yet.");
             return;
         }
-            new SortByDate().sort(mine);
-            Display.printReservations(mine);
-
-            boolean viewings = true;
-            System.out.println("==================================================");
-
-            while (viewings) {
-                System.out.println("\nEnter your reservation name for details, or press Enter to finish.");
-                String name = Input.readTextOrSkip("Reservation name");
-
-                if (name.isEmpty()) {
-                    viewings = false;
-                } else {
-                    Reservation reservation = findInList(mine, name);
-
-                    if (reservation == null) {
-                        System.out.println("  [Invalid] You have no reservation named " + name + ".");
-                    } else {
-                        Display.printDetails(reservation);
-                        viewings = false;
-                    }
-                }
-            }
-        
+        new SortByDate().sort(mine);
+        Display.printReservations(mine);
+        System.out.println("============================================================");
 
         boolean viewing = true;
-        System.out.println("==================================================");
         while (viewing) {
-            System.out.println("\nEnter your reservation name for details, or press Enter to finish.");
+            System.out.println("\nEnter your [Reservation Name] to view details, or press [Enter] to finish.");
             String name = Input.readTextOrSkip("Reservation name");
             if (name.isEmpty()) {
                 viewing = false;
             } else {
                 Reservation reservation = findInList(mine, name);
                 if (reservation == null) {
-                    System.out.println("  [Invalid] You have no reservation named " + name + ".");
+                    Display.printError("You have no reservation named " + name + ".");
                 } else {
                     Display.printDetails(reservation);
                     viewing = false;
@@ -282,7 +259,7 @@ public class CustomerMenu {
                         }
                         double fee = charge.computeCharge(reservation);
                         if (fee > 0) {
-                            System.out.println("A reschedule fee of " + Display.money(fee)
+                            Display.printNotice("A reschedule fee of " + Display.money(fee)
                                     + " will apply if staff approve this request.");
                         }
                         submit = Input.readYesNo("Submit this update request?");
@@ -304,7 +281,7 @@ public class CustomerMenu {
         }
         reservation.requestUpdate(date, time, guests, tableType, tables);
         store.save();
-        System.out.println("Update request sent. It is now Pending Update until staff approve or reject it.");
+        Display.printSuccess("Update request sent. Status: Pending Update until staff review it.");
     }
 
     private void cancelReservation() throws ReservationException {
@@ -337,7 +314,7 @@ public class CustomerMenu {
                     case 1:
                         reservation = askMyReservation(true);
                         double fee = new CancellationCharge().computeCharge(reservation);
-                        System.out.println("A cancellation fee of " + Display.money(fee)
+                        Display.printNotice("A cancellation fee of " + Display.money(fee)
                                 + " (20% of table cost) applies if the manager approves.");
                         break;
                     case 2:
@@ -358,7 +335,7 @@ public class CustomerMenu {
         }
         reservation.requestCancel();
         store.save();
-        System.out.println("Cancellation request sent to the manager for approval.");
+        Display.printSuccess("Cancellation request sent to the manager for approval.");
     }
 
     private Reservation askMyReservation(boolean forCancel) {
@@ -374,7 +351,7 @@ public class CustomerMenu {
                 }
             }
             if (reservation == null) {
-                System.out.println("  [Invalid] You have no reservation named " + name + ".");
+                Display.printError("You have no reservation named " + name + ".");
                 continue;
             }
             ReservationStatus status = reservation.getStatus();
@@ -396,34 +373,29 @@ public class CustomerMenu {
 
     private void viewPaymentStatus() {
         printTitle("View Payment Status");
+        System.out.println();
         List<Reservation> mine = store.getReservationsOf(customer.getCustomerId());
         if (mine.isEmpty()) {
-            System.out.println("No reservations yet.");
+            Display.printNotice("No reservations yet.");
             return;
         }
         new SortByDate().sort(mine);
         Display.printPaymentSummary(mine);
-        System.out.println("Payments are made at the counter and recorded by staff.");
+        System.out.println();
+        Display.printNotice("Payments are made at the counter and recorded by staff.");
     }
 
     private void viewProfile() {
         printTitle("My Profile");
-        System.out.println("  Full name   : " + customer.getName());
-        System.out.println("  Address     : " + customer.getAddress());
-        System.out.println("  Email       : " + customer.getEmail());
+        Display.printSection("Account Information");
+        System.out.printf("  %-12s: %s%n", "Full name", customer.getName());
+        System.out.printf("  %-12s: %s%n", "Address", customer.getAddress());
+        System.out.printf("  %-12s: %s%n", "Email", customer.getEmail());
+        System.out.println("============================================================");
     }
 
     private void printTitle(String title) {
-        String border = "==================================================";
-        System.out.println(border);
-        int padding = Math.max(0, (border.length() - title.length()) / 2);
-        // Java 8 has no String.repeat(), so the spaces are added with a loop.
-        StringBuilder spaces = new StringBuilder();
-        for (int i = 0; i < padding; i++) {
-            spaces.append(' ');
-        }
-        System.out.println(spaces + title);
-        System.out.println(border);
+        Display.printHeader(title.toUpperCase());
     }
 
 }

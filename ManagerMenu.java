@@ -17,6 +17,7 @@ public class ManagerMenu extends EmployeeMenu {
             System.out.println("  [9] Approve/reject cancellation requests");
             System.out.println("  [10] View check-in/check-out history");
             System.out.println("  [0] Logout");
+            System.out.println("============================================================");
 
             try {
                 int choice = Input.readMenuChoice(0, 10);
@@ -26,9 +27,11 @@ public class ManagerMenu extends EmployeeMenu {
                         loggedIn = false;
                         break;
                     case 1:
+                        Display.printHeader("ALL CUSTOMER RECORDS");
                         Display.printCustomers(store.getCustomers());
                         break;
                     case 2:
+                        Display.printHeader("ACTIVE RESERVATIONS");
                         Display.printReservations(store.getReservations());
                         break;
                     case 3:
@@ -41,28 +44,32 @@ public class ManagerMenu extends EmployeeMenu {
                         filterReservations();
                         break;
                     case 6:
+                        Display.printHeader("CHECKED-IN CUSTOMERS");
                         Display.printReservations(store.getReservationsByStatus(ReservationStatus.CHECKED_IN));
                         break;
                     case 7:
+                        Display.printHeader("CHECKED-OUT CUSTOMERS");
                         Display.printReservations(store.getReservationsByStatus(ReservationStatus.CHECKED_OUT));
                         break;
                     case 8:
+                        Display.printHeader("CANCELLED RESERVATIONS");
                         Display.printReservations(store.getCancelled());
                         break;
                     case 9:
                         reviewCancellations();
                         break;
                     case 10:
+                        Display.printHeader("CHECK-IN / CHECK-OUT HISTORY");
                         Display.printStatusLog(store.getStatusLog());
                         break;
                     default:
-                        System.out.println("  Invalid menu option.");
+                        Display.printError("Invalid menu option.");
                 }
                 if (choice != 0) Input.pause();
             } catch (BackException e) {
-                System.out.println("  Returned to the manager menu.");
+                Display.printNotice("Returned to the manager menu.");
             } catch (ReservationException e) {
-                System.out.println("  [Error] " + e.getMessage());
+                Display.printError(e.getMessage());
                 Input.pause();
             }
         }
@@ -71,22 +78,22 @@ public class ManagerMenu extends EmployeeMenu {
     /** Manager approval moves cancelled bookings from RESERVE.txt to CANCELLED.txt. */
     private void reviewCancellations() throws ReservationException {
         List<Reservation> requests = store.getReservationsByStatus(ReservationStatus.CANCEL_REQUESTED);
-        System.out.println("--- Cancellation Requests ---");
+        Display.printHeader("CANCELLATION REQUESTS");
         Display.printReservations(requests);
         if (requests.isEmpty()) return;
 
         Reservation selected = selectReservation(requests, "Enter the reservation name to review");
         Display.printDetails(selected);
         double fee = new CancellationCharge().computeCharge(selected);
-        System.out.println("Cancellation fee if approved: " + Display.money(fee));
+        System.out.println("\n  Cancellation fee if approved: " + Display.money(fee));
         if (Input.readYesNo("Approve this cancellation?")) {
             selected.approveCancel(fee);
             store.moveToCancelled(selected);
-            System.out.println("Cancellation approved and archived in CANCELLED.txt.");
+            Display.printSuccess("Cancellation approved and archived in CANCELLED.txt.");
         } else {
             selected.rejectCancel();
             store.save();
-            System.out.println("Cancellation rejected. The reservation returned to its previous status.");
+            Display.printNotice("Cancellation rejected. The reservation returned to its previous status.");
         }
     }
 

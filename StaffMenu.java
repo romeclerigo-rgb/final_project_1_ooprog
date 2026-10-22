@@ -18,6 +18,7 @@ public class StaffMenu extends EmployeeMenu {
             System.out.println("  [10] Filter reservations");
             System.out.println("  [11] View check-in/check-out history");
             System.out.println("  [0] Logout");
+            System.out.println("============================================================");
 
             try {
                 int choice = Input.readMenuChoice(0, 11);
@@ -27,9 +28,11 @@ public class StaffMenu extends EmployeeMenu {
                         loggedIn = false;
                         break;
                     case 1:
+                        Display.printHeader("CUSTOMER INFORMATION");
                         Display.printCustomers(store.getCustomers());
                         break;
                     case 2:
+                        Display.printHeader("ALL RESERVATIONS");
                         Display.printReservations(store.getReservations());
                         break;
                     case 3:
@@ -57,16 +60,17 @@ public class StaffMenu extends EmployeeMenu {
                         filterReservations();
                         break;
                     case 11:
+                        Display.printHeader("CHECK-IN / CHECK-OUT HISTORY");
                         Display.printStatusLog(store.getStatusLog());
                         break;
                     default:
-                        System.out.println("  Invalid menu option.");
+                        Display.printError("Invalid menu option.");
                 }
                 if (choice != 0) Input.pause();
             } catch (BackException e) {
-                System.out.println("  Returned to the staff menu.");
+                Display.printNotice("Returned to the staff menu.");
             } catch (ReservationException e) {
-                System.out.println("  [Error] " + e.getMessage());
+                Display.printError(e.getMessage());
                 Input.pause();
             }
         }
@@ -74,7 +78,7 @@ public class StaffMenu extends EmployeeMenu {
 
     private void reviewUpdates() throws ReservationException {
         List<Reservation> pending = store.getReservationsByStatus(ReservationStatus.PENDING_UPDATE);
-        System.out.println("--- Update Requests Waiting for Approval ---");
+        Display.printHeader("UPDATE REQUESTS - PENDING APPROVAL");
         Display.printReservations(pending);
         if (pending.isEmpty()) return;
 
@@ -84,10 +88,10 @@ public class StaffMenu extends EmployeeMenu {
             // Strategy Pattern: choose the charge rule based on the requested change.
             ChargeStrategy charge = selected.requestChangesSchedule() ? new RescheduleCharge() : new NoCharge();
             selected.approveUpdate(charge.computeCharge(selected));
-            System.out.println("Update approved. The requested details are now active.");
+            Display.printSuccess("Update approved. The requested details are now active.");
         } else {
             selected.rejectUpdate();
-            System.out.println("Update rejected. The original details remain.");
+            Display.printNotice("Update rejected. The original details remain.");
         }
         store.save();
     }
@@ -95,7 +99,7 @@ public class StaffMenu extends EmployeeMenu {
     /** Staff ask for the saved reservation name before confirming a Pending booking. */
     private void confirmReservation() throws ReservationException {
         List<Reservation> pending = store.getReservationsByStatus(ReservationStatus.PENDING);
-        System.out.println("--- Confirm a Reservation ---");
+        Display.printHeader("CONFIRM A RESERVATION");
         Display.printReservations(pending);
         if (pending.isEmpty()) return;
 
@@ -103,56 +107,57 @@ public class StaffMenu extends EmployeeMenu {
         Display.printDetails(reservation);
         String givenName = Input.readReservationName("Ask the customer for the reservation name");
         if (!givenName.equalsIgnoreCase(reservation.getReservationName())) {
-            System.out.println("Reservation name does not match. The booking remains Pending.");
+            Display.printError("Reservation name does not match. The booking remains Pending.");
             return;
         }
         if (Input.readYesNo("Does the reservation information match? Confirm this booking?")) {
             reservation.confirm();
             store.save();
-            System.out.println("Reservation confirmed successfully.");
+            Display.printSuccess("Reservation confirmed successfully.");
         } else {
-            System.out.println("Confirmation cancelled. No record was changed.");
+            Display.printNotice("Confirmation cancelled. No record was changed.");
         }
     }
 
     private void checkInCustomer() throws ReservationException {
-        System.out.println("--- Check In Customer ---");
+        Display.printHeader("CUSTOMER CHECK-IN");
         Reservation reservation = findActiveReservationByName();
         Display.printDetails(reservation);
         if (Input.readYesNo("Confirm customer arrival and check-in?")) {
             reservation.checkIn();
             store.logStatus(reservation);
-            System.out.println("Customer checked in successfully.");
+            Display.printSuccess("Customer checked in successfully.");
         } else {
-            System.out.println("Check-in cancelled. No record was changed.");
+            Display.printNotice("Check-in cancelled. No record was changed.");
         }
     }
 
     private void checkOutCustomer() throws ReservationException {
-        System.out.println("--- Check Out Customer ---");
+        Display.printHeader("CUSTOMER CHECK-OUT");
         Reservation reservation = findActiveReservationByName();
         Display.printDetails(reservation);
         if (Input.readYesNo("Confirm check-out?")) {
             reservation.checkOut();
             store.logStatus(reservation);
-            System.out.println("Customer checked out successfully.");
+            Display.printSuccess("Customer checked out successfully.");
         } else {
-            System.out.println("Check-out cancelled.");
+            Display.printNotice("Check-out cancelled.");
         }
     }
 
     private void recordPayment() throws ReservationException {
-        System.out.println("--- Record Payment ---");
+        Display.printHeader("RECORD PAYMENT");
         Reservation reservation = findActiveReservationByName();
         Display.printDetails(reservation);
         if (reservation.getBalance() <= 0.005) {
-            System.out.println("This reservation is already fully paid.");
+            Display.printNotice("This reservation is already fully paid.");
             return;
         }
         double amount = Input.readAmount("Payment amount in PHP", reservation.getBalance());
         reservation.pay(amount);
         store.save();
-        System.out.println("Payment recorded. Updated balance: " + Display.money(reservation.getBalance()));
-        System.out.println("Payment status: " + reservation.getPaymentStatus());
+        Display.printSuccess("Payment recorded successfully.");
+        System.out.println("  Updated balance : " + Display.money(reservation.getBalance()));
+        System.out.println("  Payment status  : " + reservation.getPaymentStatus());
     }
 }

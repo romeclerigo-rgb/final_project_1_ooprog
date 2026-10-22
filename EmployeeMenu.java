@@ -8,12 +8,15 @@ public abstract class EmployeeMenu {
     protected final DataStore store = DataStore.getInstance();
 
     protected void searchReservations(boolean includeCancelled) {
+        Display.printHeader("SEARCH RESERVATIONS");
         String query = Input.readReservationName("Reservation name or keyword");
+        Display.printSection("Search Results");
         Display.printReservations(store.searchReservationsByName(query, includeCancelled));
     }
 
     protected void sortReservations() {
         List<Reservation> list = store.getReservations();
+        Display.printHeader("SORT RESERVATIONS");
         System.out.println("  [1] Sort by date");
         System.out.println("  [2] Sort by payment status");
         int choice = Input.readMenuChoice(1, 2);
@@ -31,12 +34,13 @@ public abstract class EmployeeMenu {
                 throw new IllegalStateException("Unexpected sort option: " + choice);
         }
         sorter.sort(list);
-        System.out.println("Sorted by " + sorter.getName() + ".");
+        Display.printSuccess("Reservations sorted by " + sorter.getName() + ".");
         Display.printReservations(list);
     }
 
     /** Both roles can filter by the statuses/payment categories required by the proposal. */
     protected void filterReservations() {
+        Display.printHeader("FILTER RESERVATIONS");
         System.out.println("  [1] Pending reservations");
         System.out.println("  [2] Pending update requests");
         System.out.println("  [3] Checked-In reservations");
@@ -66,6 +70,7 @@ public abstract class EmployeeMenu {
     }
 
     private void printPaymentFilter() {
+        Display.printHeader("FILTER BY PAYMENT STATUS");
         System.out.println("  [1] Fully Paid");
         System.out.println("  [2] Partially Paid");
         System.out.println("  [3] Unpaid");
@@ -84,6 +89,7 @@ public abstract class EmployeeMenu {
             default:
                 throw new IllegalStateException("Unexpected payment filter option: " + choice);
         }
+        Display.printSection("Filtered Reservations - " + status);
         Display.printReservations(store.getReservationsByPaymentStatus(status));
     }
 
@@ -102,7 +108,7 @@ public abstract class EmployeeMenu {
 
     private Reservation selectReservationByName(List<Reservation> choices, String prompt) {
         if (choices.isEmpty()) {
-            System.out.println("  No reservations are available to select.");
+            Display.printNotice("No reservations are available to select.");
             return null;
         }
 
@@ -120,7 +126,7 @@ public abstract class EmployeeMenu {
             }
 
             if (matches.isEmpty()) {
-                System.out.println("  [Invalid] No reservation matches that name in the displayed list.");
+                Display.printError("No reservation matches that name in the displayed list.");
                 continue;
             }
 
@@ -128,7 +134,8 @@ public abstract class EmployeeMenu {
                 selected = matches.get(0);
                 selectedValid = true;
             } else {
-                System.out.println("More than one reservation uses that name. Choose the correct date and time:");
+                Display.printSection("Matching Reservations");
+                System.out.println("  More than one reservation uses that name. Choose the correct date and time:");
                 for (int i = 0; i < matches.size(); i++) {
                     Reservation reservation = matches.get(i);
                     System.out.printf("  [%d] %s at %s | %d guest(s) | %s%n",
@@ -147,14 +154,6 @@ public abstract class EmployeeMenu {
 
 
     protected void printTitle(String title) {
-        String border = "==================================================";
-        System.out.println(border);
-        int padding = Math.max(0, (border.length() - title.length()) / 2);
-        StringBuilder spaces = new StringBuilder();
-        for (int i = 0; i < padding; i++) {
-            spaces.append(' ');
-        }
-        System.out.println(spaces + title);
-        System.out.println(border);
+        Display.printHeader(title);
     }
 }
