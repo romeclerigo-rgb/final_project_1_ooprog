@@ -23,7 +23,9 @@ public class Main {
                 System.out.println("You are already at the main menu.");
             }
         }
-        System.out.println("Thank you for using the Restaurant Reservation System. Goodbye!");
+        Display.printHeader("THANK YOU FOR VISITING");
+        System.out.println("  Thank you for using the Restaurant Reservation System.");
+        System.out.println("  Goodbye!");
     }
 
     private static void printTitle(String title) {
@@ -50,7 +52,7 @@ public class Main {
         String email = Input.readEmail("Email address");
         
         while (STORE.findCustomerByEmail(email) != null) {
-            System.out.println("  [Invalid] That email address is already registered.");
+            Display.printError("That email address is already registered.");
             email = Input.readEmail("Email address");
         }
 
@@ -61,8 +63,9 @@ public class Main {
                 duplicateNumber, address, email, password);
         STORE.addCustomer(customer);
         
-        System.out.println("\nAccount created successfully!");
-        System.out.println("You can now log in using your email and password.");
+        Display.printHeader("ACCOUNT CREATED SUCCESSFULLY");
+        System.out.println("  Your account is ready to use.");
+        System.out.println("  You can now log in using your email and password.");
         Input.pause();
     }
 
@@ -82,12 +85,13 @@ public class Main {
             openMenu(customer);
             return;
         }
-        System.out.println("\n[Invalid] Incorrect email or password.");
+        Display.printError("Incorrect email or password.");
         Input.pause();
     }
 
     private static void openMenu(User user) {
-        System.out.println("\nWelcome, " + user.getName() + "! Logged in as " + user.getRole() + ".");
+        Display.printHeader("WELCOME, " + user.getName().toUpperCase());
+        System.out.println("  Logged in as: " + user.getRole());
         user.showMenu();
     }
 }

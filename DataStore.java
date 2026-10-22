@@ -37,7 +37,7 @@ public class DataStore {
     private boolean loaded;
 
     private DataStore() {
-        // Demo accounts for the school project. Change these before a real deployment.
+        // Demo accounts
         employees.add(new Staff("staffUser@gmail.com", "admin123", "Restaurant Staff"));
         employees.add(new Manager("adminUser@gmail.com", "admin123", "Restaurant Manager"));
     }
