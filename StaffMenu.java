@@ -5,7 +5,7 @@ public class StaffMenu extends EmployeeMenu {
     public void run() {
         boolean loggedIn = true;
         while (loggedIn) {
-            System.out.println("\n==================== STAFF MENU ====================");
+            printTitle("STAFF MENU");
             System.out.println("  [1] View customer information");
             System.out.println("  [2] View reservations");
             System.out.println("  [3] Search by reservation name");

@@ -145,4 +145,16 @@ public abstract class EmployeeMenu {
         return selected;
     }
 
+
+    protected void printTitle(String title) {
+        String border = "==================================================";
+        System.out.println(border);
+        int padding = Math.max(0, (border.length() - title.length()) / 2);
+        StringBuilder spaces = new StringBuilder();
+        for (int i = 0; i < padding; i++) {
+            spaces.append(' ');
+        }
+        System.out.println(spaces + title);
+        System.out.println(border);
+    }
 }

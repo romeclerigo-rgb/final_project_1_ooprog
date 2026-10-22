@@ -5,7 +5,7 @@ public class ManagerMenu extends EmployeeMenu {
     public void run() {
         boolean loggedIn = true;
         while (loggedIn) {
-            System.out.println("\n=================== MANAGER MENU ===================");
+            printTitle("MANAGER MENU");
             System.out.println("  [1] View all customer records");
             System.out.println("  [2] View all active reservations");
             System.out.println("  [3] Search reservations by reservation name");
@@ -89,4 +89,6 @@ public class ManagerMenu extends EmployeeMenu {
             System.out.println("Cancellation rejected. The reservation returned to its previous status.");
         }
     }
+
+
 }
