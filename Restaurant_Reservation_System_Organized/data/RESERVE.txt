@@ -1,0 +1,2 @@
+RN-657066|rome@gmail.com|Theo|2026-12-25|12:20|1|REGULAR|1|CHECKED_OUT|500.0|0.0|-|-|-|-|-|-
+RN-024656|rome@gmail.com|Theo|2026-12-25|12:30|50|VIP|9|PENDING|0.0|0.0|-|-|-|-|-|-
