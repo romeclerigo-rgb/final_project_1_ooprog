@@ -2,6 +2,7 @@ import java.util.List;
 
 /** Menu for day-to-day reservation operations performed by restaurant staff. */
 public class StaffMenu extends EmployeeMenu {
+    @Override
     public void run() {
         boolean loggedIn = true;
         while (loggedIn) {

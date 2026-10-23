@@ -108,24 +108,6 @@ public class Display {
         System.out.println("  Total: " + list.size() + " reservation(s)");
     }
 
-    public static void printPickList(List<Reservation> list) {
-        if (list.isEmpty()) {
-            System.out.println("  No reservations to show.");
-            return;
-        }
-        DataStore store = DataStore.getInstance();
-        String format = "%-22s %-24s %-19s %-10s %s%n";
-        System.out.printf(format, "Customer", "Reservation name", "Email", "Date", "Status");
-        System.out.println(LINE);
-        for (Reservation reservation : list) {
-            System.out.printf(format,
-                    shortText(store.getCustomerName(reservation.getCustomerId()), 22),
-                    shortText(reservation.getReservationName(), 24),
-                    shortText(store.getCustomerEmail(reservation.getCustomerId()), 19),
-                    reservation.getDate(), reservation.getStatus().getLabel());
-        }
-    }
-
     public static void printDetails(Reservation reservation) {
         DataStore store = DataStore.getInstance();
         printHeader("RESERVATION DETAILS");
