@@ -311,6 +311,23 @@ public class DataStore {
         return result;
     }
 
+    /** Active reservations exclude completed check-outs and cancellation requests that have been archived. */
+    public List<Reservation> getActiveReservations() {
+        List<Reservation> result = new ArrayList<Reservation>();
+        for (Reservation reservation : reservations) {
+            if (reservation.getStatus() != ReservationStatus.CHECKED_OUT
+                    && reservation.getStatus() != ReservationStatus.CANCELLED
+                    && reservation.getStatus() != ReservationStatus.CANCELLED_PAID_FEE) {
+                result.add(reservation);
+            }
+        }
+        return result;
+    }
+
+    public List<Reservation> getCheckedInReservations() {
+        return getReservationsByStatus(ReservationStatus.CHECKED_IN);
+    }
+
     public List<Reservation> getReservationsByPaymentStatus(String paymentStatus) {
         List<Reservation> result = new ArrayList<Reservation>();
         for (Reservation reservation : reservations) {

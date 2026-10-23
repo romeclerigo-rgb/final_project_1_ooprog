@@ -74,6 +74,10 @@ public class Display {
         System.out.printf("  %-21s: %s%n", "Extra Charges", money(reservation.getExtraCharges()));
         System.out.printf("  %-21s: %s%n", "Total Amount", money(reservation.getTotal()));
         System.out.printf("  %-21s: %s%n", "Amount Paid", money(reservation.getAmountPaid()));
+        if (reservation.getCancellationFee() > 0) {
+            System.out.printf("  %-21s: %s%n", "Cancellation Fee", money(reservation.getCancellationFee()));
+            System.out.printf("  %-21s: %s%n", "Cancellation Fee Paid", money(reservation.getCancellationFeePaid()));
+        }
         System.out.printf("  %-21s: %s%n", "Remaining Balance", money(reservation.getBalance()));
         System.out.printf("  %-21s: %s%n", "Payment Status", reservation.getPaymentStatus());
 
@@ -143,6 +147,10 @@ public class Display {
         System.out.printf("  %-21s: %s%n", "Extra Charges", money(reservation.getExtraCharges()));
         System.out.printf("  %-21s: %s%n", "Total Amount", money(reservation.getTotal()));
         System.out.printf("  %-21s: %s%n", "Amount Paid", money(reservation.getAmountPaid()));
+        if (reservation.getCancellationFee() > 0) {
+            System.out.printf("  %-21s: %s%n", "Cancellation Fee", money(reservation.getCancellationFee()));
+            System.out.printf("  %-21s: %s%n", "Cancellation Fee Paid", money(reservation.getCancellationFeePaid()));
+        }
         System.out.printf("  %-21s: %s%n", "Remaining Balance", money(reservation.getBalance()));
         if (reservation.getRefundDue() > 0) {
             System.out.printf("  %-21s: %s%n", "Refund Due", money(reservation.getRefundDue()));
