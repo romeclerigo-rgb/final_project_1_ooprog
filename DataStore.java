@@ -21,7 +21,6 @@ import java.util.Random;
  * remove records from the stored lists just by filtering or sorting them.
  */
 public class DataStore {
-    private static DataStore instance;
     private static final String FOLDER = "data";
     private static final String CUSTOMER_FILE = "CUSTOMER.txt";
     private static final String RESERVE_FILE = "RESERVE.txt";
@@ -42,11 +41,13 @@ public class DataStore {
         employees.add(new Manager("adminUser@gmail.com", "admin123", "Restaurant Manager"));
     }
 
+    /** Lazy, thread-safe Singleton initialization. */
+    private static class InstanceHolder {
+        private static final DataStore INSTANCE = new DataStore();
+    }
+
     public static DataStore getInstance() {
-        if (instance == null) {
-            instance = new DataStore();
-        }
-        return instance;
+        return InstanceHolder.INSTANCE;
     }
 
     /** Load once per application run. Clearing first prevents repeated calls from duplicating records. */
@@ -238,12 +239,6 @@ public class DataStore {
 
     public List<Reservation> getCancelled() {
         return new ArrayList<Reservation>(cancelled);
-    }
-
-    public List<Reservation> getAllReservationsIncludingCancelled() {
-        List<Reservation> all = getReservations();
-        all.addAll(cancelled);
-        return all;
     }
 
     public Reservation findReservation(String reservationId) {

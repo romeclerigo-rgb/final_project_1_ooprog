@@ -7,6 +7,9 @@ import java.util.List;
 public abstract class EmployeeMenu {
     protected final DataStore store = DataStore.getInstance();
 
+    /** Runs the menu for the specific employee role. */
+    public abstract void run();
+
     protected void searchReservations(boolean includeCancelled) {
         Display.printHeader("SEARCH RESERVATIONS");
         String query = Input.readReservationName("Reservation name or keyword");

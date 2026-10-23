@@ -50,7 +50,7 @@ public class Input {
             System.exit(0);
         }
         String text = SCANNER.nextLine();
-        if (text.equals("\\\\")) {
+        if (text.equals("\\")) {
             throw new BackException();
         }
         return text;
@@ -288,38 +288,6 @@ public class Input {
                 }
             } catch (DateTimeParseException e) {
                 invalid("Please enter a valid time.");
-            }
-        }
-        return value;
-    }
-
-    public static String readReservationId(String label) {
-        boolean valid = false;
-        String value = "";
-        while (!valid) {
-            String text = ask(label, null);
-            if (text.matches("[0-9]{6}")) {
-                value = "RN-" + text;
-                valid = true;
-            } else {
-                invalid("Enter only the 6 digits of the ID, without RN-.");
-            }
-        }
-        return value;
-    }
-
-    public static String readReservationIdOrSkip(String label) {
-        boolean valid = false;
-        String value = null;
-        while (!valid) {
-            String text = ask(label, null);
-            if (text.isEmpty()) {
-                valid = true;
-            } else if (text.matches("[0-9]{6}")) {
-                value = "RN-" + text;
-                valid = true;
-            } else {
-                invalid("Enter six digits or press Enter to skip.");
             }
         }
         return value;

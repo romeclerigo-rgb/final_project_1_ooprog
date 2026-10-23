@@ -2,6 +2,7 @@ import java.util.List;
 
 /** Manager menu: record oversight and approval of cancellation requests. */
 public class ManagerMenu extends EmployeeMenu {
+    @Override
     public void run() {
         boolean loggedIn = true;
         while (loggedIn) {
