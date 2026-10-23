@@ -39,7 +39,7 @@ public class ManagerMenu extends EmployeeMenu {
                         break;
                     case 2:
                         Display.printHeader("ACTIVE RESERVATIONS");
-                        Display.printReservations(store.getReservations());
+                        Display.printReservations(store.getActiveReservations());
                         break;
                     case 3:
                         searchReservations(true);
@@ -52,7 +52,7 @@ public class ManagerMenu extends EmployeeMenu {
                         break;
                     case 6:
                         Display.printHeader("CHECKED-IN CUSTOMERS");
-                        Display.printReservations(store.getReservationsByStatus(ReservationStatus.CHECKED_IN));
+                        Display.printReservations(store.getCheckedInReservations());
                         break;
                     case 7:
                         Display.printHeader("CHECKED-OUT CUSTOMERS");
@@ -91,16 +91,28 @@ public class ManagerMenu extends EmployeeMenu {
 
         Reservation selected = selectReservation(requests, "Enter the reservation name to review");
         Display.printDetails(selected);
-        double fee = new CancellationCharge().computeCharge(selected);
-        System.out.println("\n  Cancellation fee if approved: " + Display.money(fee));
-        if (Input.readYesNo("Approve this cancellation?")) {
-            selected.approveCancel(fee);
+        double fee = selected.getCancellationFee();
+        System.out.println("\n  Cancellation fee required: " + Display.money(fee));
+        System.out.println("  Cancellation fee paid    : " + Display.money(selected.getCancellationFeePaid()));
+        System.out.println("  Cancellation fee balance  : " + Display.money(selected.getCancellationFeeBalance()));
+
+        if (!selected.isCancellationFeePaid()) {
+            if (Input.readYesNo("Reject this unpaid cancellation request?")) {
+                selected.rejectCancel();
+                store.save();
+                Display.printNotice("Cancellation rejected. The reservation returned to its previous status.");
+            } else {
+                Display.printNotice("Approval is unavailable until the cancellation fee is fully paid.");
+            }
+            return;
+        }
+
+        if (Input.readYesNo("Approve this PAID cancellation?")) {
+            selected.approveCancel();
             store.moveToCancelled(selected);
-            Display.printSuccess("Cancellation approved and archived in CANCELLED.txt.");
+            Display.printSuccess("Cancellation approved and archived as 'Cancelled - Paid Cancellation Fee'.");
         } else {
-            selected.rejectCancel();
-            store.save();
-            Display.printNotice("Cancellation rejected. The reservation returned to its previous status.");
+            Display.printNotice("Cancellation remains pending because the fee has already been paid.");
         }
     }
 

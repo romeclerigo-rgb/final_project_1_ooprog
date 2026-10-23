@@ -85,7 +85,7 @@ public class CustomerMenu {
         Display.printNotice("You have been logged out.");
     }
 
-    private void makeReservation() {
+    private void makeReservation() throws ReservationException {
         printTitle("MAKE A RESERVATION");
         printBookingRules();
         System.out.println();
@@ -103,7 +103,18 @@ public class CustomerMenu {
 
         Reservation reservation = new Reservation(store.newReservationId(), customer.getCustomerId(),
                 reservationName, date, time, guests, tableType, tables);
+
+        double deposit = reservation.getTableCost() * 0.10;
+        Display.printSection("10% Reservation Security Deposit");
+        System.out.println("  Total reservation amount : " + Display.money(reservation.getTableCost()));
+        System.out.println("  Required deposit (10%)   : " + Display.money(deposit));
+        double paidDeposit = Input.readAmount("Pay security deposit in PHP", deposit);
+        if (Math.abs(paidDeposit - deposit) > 0.005) {
+            throw new ReservationException(String.format("The full 10%% security deposit of PHP %,.2f is required.", deposit));
+        }
+        reservation.pay(paidDeposit);
         store.addReservation(reservation);
+        Display.printSuccess("Reservation created. Your 10% security deposit has been recorded.");
         Display.printReservationConfirmation(reservation);
     }
 
@@ -294,56 +305,47 @@ public class CustomerMenu {
 
     private void cancelReservation() throws ReservationException {
         printTitle("Cancel Reservation");
-            List<Reservation> mine = store.getReservationsOf(customer.getCustomerId());
-            boolean hasCancellableReservation = false;
-
-            for (Reservation reservation : mine) {
-                ReservationStatus status = reservation.getStatus();
-
-                if (status == ReservationStatus.PENDING
-                        || status == ReservationStatus.CONFIRMED
-                        || status == ReservationStatus.PENDING_UPDATE) {
-                    hasCancellableReservation = true;
-                    break;
-                }
-            }
-
-            if (!hasCancellableReservation) {
-                System.out.println("No reservations available to cancel yet.");
-                return;
-            }
-        Reservation reservation = null;
-        boolean confirmed = false;
-        int step = 1;
-        while (step <= 2) {
-            try {
-                // Step 1 selects the booking; step 2 confirms the request.
-                switch (step) {
-                    case 1:
-                        reservation = askMyReservation(true);
-                        double fee = new CancellationCharge().computeCharge(reservation);
-                        Display.printNotice("A cancellation fee of " + Display.money(fee)
-                                + " (20% of table cost) applies if the manager approves.");
-                        break;
-                    case 2:
-                        confirmed = Input.readYesNo("Request cancellation?");
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unknown cancellation form step: " + step);
-                }
-                step++;
-            } catch (BackException e) {
-                if (step == 1) throw e;
-                step--;
+        List<Reservation> mine = store.getReservationsOf(customer.getCustomerId());
+        boolean hasCancellableReservation = false;
+        for (Reservation reservation : mine) {
+            ReservationStatus status = reservation.getStatus();
+            if (status == ReservationStatus.PENDING || status == ReservationStatus.CONFIRMED
+                    || status == ReservationStatus.PENDING_UPDATE) {
+                hasCancellableReservation = true;
+                break;
             }
         }
-        if (!confirmed) {
-            System.out.println("Cancellation request discarded.");
+        if (!hasCancellableReservation) {
+            System.out.println("No reservations available to cancel yet.");
             return;
         }
+
+        Reservation reservation = askMyReservation(true);
+        ReservationStatus status = reservation.getStatus();
+
+        if (!Input.readYesNo("Confirm cancellation of this reservation?")) {
+            System.out.println("Cancellation discarded.");
+            return;
+        }
+
+        if (status == ReservationStatus.PENDING) {
+            reservation.cancelPendingWithoutFee();
+            store.moveToCancelled(reservation);
+            Display.printSuccess("Pending reservation cancelled immediately. No cancellation fee or manager approval is required.");
+            return;
+        }
+
         reservation.requestCancel();
+        double fee = reservation.getCancellationFee();
+        Display.printNotice("A cancellation fee of " + Display.money(fee)
+                + " (20% of table cost) is required before manager approval.");
+        double paid = Input.readAmount("Pay cancellation fee in PHP", fee);
+        if (Math.abs(paid - fee) > 0.005) {
+            throw new ReservationException(String.format("The full cancellation fee of PHP %,.2f is required before manager approval.", fee));
+        }
+        reservation.payCancellationFee(paid);
         store.save();
-        Display.printSuccess("Cancellation request sent to the manager for approval.");
+        Display.printSuccess("Cancellation fee paid. Your cancellation is now waiting for manager approval.");
     }
 
     private Reservation askMyReservation(boolean forCancel) {

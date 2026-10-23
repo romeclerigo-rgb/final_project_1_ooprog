@@ -19,16 +19,15 @@ public class StaffMenu extends EmployeeMenu {
             System.out.println("  [4] Approve/reject reservation updates");
             System.out.println("  [5] Verify reservation name and confirm booking");
             System.out.println("  [6] Check in customer");
-            System.out.println("  [7] Check out customer");
-            System.out.println("  [8] Record payment");
-            System.out.println("  [9] Sort reservations");
-            System.out.println("  [10] Filter reservations");
-            System.out.println("  [11] View check-in/check-out history");
+            System.out.println("  [7] Check out customer / settle payment");
+            System.out.println("  [8] Sort reservations");
+            System.out.println("  [9] Filter reservations");
+            System.out.println("  [10] View check-in/check-out history");
             System.out.println("  [0] Logout");
             System.out.println("============================================================");
 
             try {
-                int choice = Input.readMenuChoice(0, 11);
+                int choice = Input.readMenuChoice(0, 10);
                 // Switch-case avoids a long chain of comparisons for menu numbers.
                 switch (choice) {
                     case 0:
@@ -58,15 +57,12 @@ public class StaffMenu extends EmployeeMenu {
                         checkOutCustomer();
                         break;
                     case 8:
-                        recordPayment();
-                        break;
-                    case 9:
                         sortReservations();
                         break;
-                    case 10:
+                    case 9:
                         filterReservations();
                         break;
-                    case 11:
+                    case 10:
                         Display.printHeader("CHECK-IN / CHECK-OUT HISTORY");
                         Display.printStatusLog(store.getStatusLog());
                         break;
@@ -140,31 +136,29 @@ public class StaffMenu extends EmployeeMenu {
     }
 
     private void checkOutCustomer() throws ReservationException {
-        Display.printHeader("CUSTOMER CHECK-OUT");
+        Display.printHeader("CUSTOMER CHECK-OUT / PAYMENT");
         Reservation reservation = findActiveReservationByName();
         Display.printDetails(reservation);
-        if (Input.readYesNo("Confirm check-out?")) {
+
+        double balance = reservation.getBalance();
+        if (balance > 0.005) {
+            System.out.println("  Customer must settle the remaining balance before checkout.");
+            double amount = Input.readAmount("Remaining payment in PHP", balance);
+            reservation.pay(amount);
+            store.save();
+            Display.printSuccess("Remaining payment recorded. Balance is now " + Display.money(reservation.getBalance()) + ".");
+        }
+
+        if (reservation.getBalance() > 0.005) {
+            throw new ReservationException("Checkout is blocked until the full remaining balance is paid.");
+        }
+
+        if (Input.readYesNo("Confirm customer checkout?")) {
             reservation.checkOut();
             store.logStatus(reservation);
-            Display.printSuccess("Customer checked out successfully.");
+            Display.printSuccess("Customer checked out successfully. Reservation is fully paid.");
         } else {
-            Display.printNotice("Check-out cancelled.");
+            Display.printNotice("Checkout cancelled.");
         }
-    }
-
-    private void recordPayment() throws ReservationException {
-        Display.printHeader("RECORD PAYMENT");
-        Reservation reservation = findActiveReservationByName();
-        Display.printDetails(reservation);
-        if (reservation.getBalance() <= 0.005) {
-            Display.printNotice("This reservation is already fully paid.");
-            return;
-        }
-        double amount = Input.readAmount("Payment amount in PHP", reservation.getBalance());
-        reservation.pay(amount);
-        store.save();
-        Display.printSuccess("Payment recorded successfully.");
-        System.out.println("  Updated balance : " + Display.money(reservation.getBalance()));
-        System.out.println("  Payment status  : " + reservation.getPaymentStatus());
     }
 }

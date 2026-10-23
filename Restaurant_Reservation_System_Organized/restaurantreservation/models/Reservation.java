@@ -28,6 +28,8 @@ public class Reservation {
     private ReservationStatus statusBeforeCancel;
     private double amountPaid;
     private double extraCharges;
+    private double cancellationFee;
+    private double cancellationFeePaid;
 
     // Pending values stay separate until staff approve the requested update.
     private LocalDate newDate;
@@ -68,6 +70,10 @@ public class Reservation {
     public ReservationStatus getStatus() { return status; }
     public double getAmountPaid() { return amountPaid; }
     public double getExtraCharges() { return extraCharges; }
+    public double getCancellationFee() { return cancellationFee; }
+    public double getCancellationFeePaid() { return cancellationFeePaid; }
+    public double getCancellationFeeBalance() { return Math.max(0.0, cancellationFee - cancellationFeePaid); }
+    public boolean isCancellationFeePaid() { return cancellationFee > 0.0 && getCancellationFeeBalance() <= 0.005; }
     public LocalDate getNewDate() { return newDate; }
     public LocalTime getNewTime() { return newTime; }
     public int getNewGuests() { return newGuests; }
@@ -88,7 +94,8 @@ public class Reservation {
 
     /** A cancelled reservation is charged its cancellation fee instead of the full table cost. */
     public double getTotal() {
-        return status == ReservationStatus.CANCELLED ? extraCharges : getTableCost() + extraCharges;
+        return (status == ReservationStatus.CANCELLED || status == ReservationStatus.CANCELLED_PAID_FEE)
+                ? extraCharges : getTableCost() + extraCharges;
     }
 
     public double getBalance() {
@@ -166,22 +173,44 @@ public class Reservation {
     }
 
     public void requestCancel() throws ReservationException {
-        if (status != ReservationStatus.PENDING && status != ReservationStatus.CONFIRMED
-                && status != ReservationStatus.PENDING_UPDATE) {
-            throw new ReservationException("This reservation cannot be cancelled while its status is " + status.getLabel() + ".");
+        if (status != ReservationStatus.CONFIRMED && status != ReservationStatus.PENDING_UPDATE) {
+            throw new ReservationException("Only confirmed reservations require an approved cancellation. Current status: " + status.getLabel() + ".");
         }
-        // A pending-update request is cleared, so rejection restores Confirmed instead.
         statusBeforeCancel = status == ReservationStatus.PENDING_UPDATE ? ReservationStatus.CONFIRMED : status;
         clearRequestedUpdate();
+        cancellationFee = getTableCost() * restaurantreservation.strategies.CancellationCharge.RATE;
+        cancellationFeePaid = 0.0;
         status = ReservationStatus.CANCEL_REQUESTED;
     }
 
-    public void approveCancel(double fee) throws ReservationException {
+    /** Records the cancellation fee separately from the reservation's normal deposit/payments. */
+    public void payCancellationFee(double amount) throws ReservationException {
+        if (status != ReservationStatus.CANCEL_REQUESTED) {
+            throw new ReservationException("There is no cancellation request waiting for payment.");
+        }
+        if (!Double.isFinite(amount) || amount <= 0 || amount > getCancellationFeeBalance() + 0.005) {
+            throw new ReservationException(String.format("Enter a payment greater than zero and no more than PHP %,.2f.", getCancellationFeeBalance()));
+        }
+        cancellationFeePaid += amount;
+    }
+
+    public void cancelPendingWithoutFee() throws ReservationException {
+        if (status != ReservationStatus.PENDING) {
+            throw new ReservationException("Only Pending reservations can be cancelled without a fee.");
+        }
+        status = ReservationStatus.CANCELLED;
+        statusBeforeCancel = null;
+    }
+
+    public void approveCancel() throws ReservationException {
         if (status != ReservationStatus.CANCEL_REQUESTED) {
             throw new ReservationException("There is no cancellation request waiting for approval.");
         }
-        extraCharges += fee;
-        status = ReservationStatus.CANCELLED;
+        if (!isCancellationFeePaid()) {
+            throw new ReservationException("The cancellation fee must be fully paid before approval.");
+        }
+        extraCharges += cancellationFee;
+        status = ReservationStatus.CANCELLED_PAID_FEE;
         statusBeforeCancel = null;
     }
 
@@ -189,8 +218,13 @@ public class Reservation {
         if (status != ReservationStatus.CANCEL_REQUESTED) {
             throw new ReservationException("There is no cancellation request waiting for approval.");
         }
+        if (isCancellationFeePaid()) {
+            throw new ReservationException("A paid cancellation fee cannot be rejected. Approve the cancellation instead.");
+        }
         status = statusBeforeCancel == null ? ReservationStatus.CONFIRMED : statusBeforeCancel;
         statusBeforeCancel = null;
+        cancellationFee = 0.0;
+        cancellationFeePaid = 0.0;
     }
 
     public void checkIn() throws ReservationException {
@@ -249,7 +283,8 @@ public class Reservation {
         return reservationId + "|" + customerId + "|" + reservationName + "|" + date + "|" + time + "|"
                 + guests + "|" + tableType.name() + "|" + tables + "|" + status.name() + "|"
                 + amountPaid + "|" + extraCharges + "|" + requested + "|"
-                + (statusBeforeCancel == null ? "-" : statusBeforeCancel.name());
+                + (statusBeforeCancel == null ? "-" : statusBeforeCancel.name()) + "|"
+                + cancellationFee + "|" + cancellationFeePaid;
     }
 
     /** Reads current and older reservation formats to preserve existing saved data. */
@@ -291,6 +326,10 @@ public class Reservation {
                 }
                 if (p.length == 17 && !p[16].equals("-")) {
                     reservation.statusBeforeCancel = ReservationStatus.valueOf(p[16]);
+                }
+                if (p.length == 19) {
+                    reservation.cancellationFee = Double.parseDouble(p[17]);
+                    reservation.cancellationFeePaid = Double.parseDouble(p[18]);
                 }
                 break;
             default:

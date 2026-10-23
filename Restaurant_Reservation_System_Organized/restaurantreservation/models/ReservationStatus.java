@@ -11,7 +11,8 @@ public enum ReservationStatus {
     CANCEL_REQUESTED("Cancel Requested"),
     CHECKED_IN("Checked-In"),
     CHECKED_OUT("Checked-Out"),
-    CANCELLED("Cancelled");
+    CANCELLED("Cancelled"),
+    CANCELLED_PAID_FEE("Cancelled - Paid Cancellation Fee");
 
     private final String label;
 
